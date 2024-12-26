@@ -1,4 +1,3 @@
-Here’s an updated `README.md` file that includes a detailed explanation of the menu, dashboard, and features of your **`pychat`** tool. It explains the global chat, commands for profiles, friend requests, and the notifications section in an easy-to-understand format.
 
 ---
 
@@ -183,4 +182,3 @@ To log out, select option 5 from the main menu or type `/logout` in the chat. Th
 
 ---
 
-Let me know if you’d like additional customizations!
