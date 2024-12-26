@@ -1,8 +1,6 @@
 
 ---
 
-## **README.md**
-
 # pychat - Console Chat Client
 
 `pychat` is a console-based chat client for connecting to a Python chat server. It provides real-time communication in a global chatroom by default and offers features like user profiles, friend requests, and a notifications dashboard for managing interactions.
