@@ -1,8 +1,6 @@
 """
 client.py - PyChat Client with Automatic Dependency Installation
-
-Usage:
-  python client.py
+Clears console after installing any missing dependencies.
 """
 
 import sys
@@ -19,28 +17,40 @@ def ensure_dependencies_installed():
     install them using pip at runtime.
     """
     required_packages = {
-        # If you need Flask-SocketIO or additional dependencies, add them here:
         "flask": "Flask==2.2.3",
         "requests": "requests==2.31.0",
         "socketio": "python-socketio==5.6.0"
     }
 
-    # For each library we need, try importing; if failing, pip install it.
+    installed_any = False
+
     for import_name, pkg_version in required_packages.items():
         try:
-            __import__(import_name)  # Attempt to import
+            __import__(import_name)
         except ImportError:
             print(f"[CLIENT] Missing package '{import_name}'. Installing {pkg_version}...")
             subprocess.run(
                 [sys.executable, "-m", "pip", "install", pkg_version],
                 check=False
             )
+            installed_any = True
 
-# Immediately ensure dependencies are installed before continuing
+    # If we installed anything, we can clear the console to have a fresh view
+    if installed_any:
+        clear_console()
+
+def clear_console():
+    """Clear the console screen."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("[CLIENT] Dependencies installed. Console cleared. Continuing...")
+
+###############################################################################
+# Immediately ensure dependencies are installed
+###############################################################################
 ensure_dependencies_installed()
 
 ###############################################################################
-# Now that dependencies are installed, we can safely import them
+# Now that dependencies are installed, we can import them safely
 ###############################################################################
 import requests
 import socketio
@@ -79,8 +89,8 @@ def on_message(data):
 @sio.on("server_version_updated")
 def on_server_version_updated(data):
     """
-    Triggered when the server side has a new version.
-    data might look like: {'version': '1.0.2'}
+    Triggered when the server indicates a new version is available.
+    e.g., data = {'version': '1.0.2'}
     """
     new_version = data.get("version", "unknown")
     print(f"[CLIENT] Server indicates a new version: {new_version}")
@@ -97,8 +107,7 @@ def on_server_version_updated(data):
 
 def update_client_repo():
     """
-    Run 'git pull' to update local repository. Make sure you have credentials set
-    if your repo is private.
+    Run 'git pull' to update local repository. Assumes credentials are set if private.
     """
     print("[CLIENT] Pulling latest changes from the repository...")
     try:
@@ -119,7 +128,7 @@ def update_client_repo():
 
 def check_version_http():
     """
-    Call /version-check with the local client version to see if we need an update.
+    Call /version-check with the local client version to see if an update is needed.
     """
     print(f"[CLIENT] Checking version via HTTP. Local: {LOCAL_CLIENT_VERSION}")
     payload = {"client_version": LOCAL_CLIENT_VERSION}
@@ -175,8 +184,7 @@ def connect_socketio():
     """Connect to the server via Socket.IO if not already connected."""
     if not sio.connected:
         try:
-            print("[CLIENT] Connecting via Socket.IO...")
-            # 'wait_timeout' in seconds to avoid indefinite hangs
+            print("[CLIENT] Connecting via SocketIO...")
             sio.connect(SERVER_URL, wait_timeout=5)
         except Exception as e:
             print("[CLIENT] Socket.IO connection failed:", e)
@@ -196,8 +204,7 @@ def disconnect_socketio():
 ###############################################################################
 
 if __name__ == "__main__":
-    print("[CLIENT] Auto-installing dependencies if needed...")
-    # We already called ensure_dependencies_installed() at the top,
-    # but if you want to double-check, call it again here if needed.
+    print("[CLIENT] All dependencies verified or installed.")
+    print("[CLIENT] Starting the client menu...")
 
     main_menu()
