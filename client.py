@@ -1,6 +1,6 @@
 """
 client.py - PyChat Client with Automatic Dependency Installation
-Clears console after installing any missing dependencies.
+Now displays local client version and adds log/reg options.
 """
 
 import sys
@@ -151,17 +151,50 @@ def check_version_http():
         print("[CLIENT] Error calling /version-check:", e)
 
 ###############################################################################
+# Extra: Log and Reg (placeholders)
+###############################################################################
+
+def user_login():
+    """
+    Placeholder for user login. You can integrate with your server's
+    auth endpoints if you have them.
+    """
+    print("[CLIENT] Enter your username:")
+    username = input("> ")
+    print("[CLIENT] Enter your password:")
+    password = input("> ")
+    # Placeholder logic:
+    print(f"[CLIENT] Attempting login for username={username} ... (not yet implemented)")
+
+def user_register():
+    """
+    Placeholder for user registration. Connect to your server's registration
+    endpoint if you have one.
+    """
+    print("[CLIENT] Register a new account. (Placeholder flow)")
+    print("[CLIENT] Enter your desired username:")
+    username = input("> ")
+    print("[CLIENT] Enter your desired password:")
+    password = input("> ")
+    print("[CLIENT] Enter your age:")
+    age = input("> ")
+    # Placeholder logic:
+    print(f"[CLIENT] Attempting registration with username={username}, age={age} ... (not yet implemented)")
+
+###############################################################################
 # Menu / Main Flow
 ###############################################################################
 
 def main_menu():
     while True:
-        print("\n=== PyChat Client Menu ===")
+        print(f"\n=== PyChat Client Menu (Local v{LOCAL_CLIENT_VERSION}) ===")
         print("1. Connect to server (SocketIO)")
         print("2. Check version via HTTP (/version-check)")
         print("3. Pull latest code now (manual git pull)")
         print("4. Disconnect from server")
-        print("5. Exit")
+        print("5. Log")
+        print("6. Reg")
+        print("7. Exit")
 
         choice = input("Select an option: ").strip()
         if choice == "1":
@@ -173,6 +206,10 @@ def main_menu():
         elif choice == "4":
             disconnect_socketio()
         elif choice == "5":
+            user_login()
+        elif choice == "6":
+            user_register()
+        elif choice == "7":
             print("[CLIENT] Exiting client...")
             if sio.connected:
                 sio.disconnect()
@@ -204,6 +241,7 @@ def disconnect_socketio():
 ###############################################################################
 
 if __name__ == "__main__":
+    print(f"[CLIENT] Local client version is {LOCAL_CLIENT_VERSION}.")
     print("[CLIENT] All dependencies verified or installed.")
     print("[CLIENT] Starting the client menu...")
 
