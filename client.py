@@ -1,6 +1,14 @@
 """
-client.py - PyChat Client with Automatic Dependency Installation
-Now displays local client version and adds log/reg options.
+client.py - PyChat Client with Automatic Dependency Installation, Styled Menus, and Clear Screen
+
+Install or verify all necessary dependencies:
+  - Flask==2.2.3
+  - requests==2.31.0
+  - python-socketio==5.6.0
+  - colorama==0.4.6
+
+Once dependencies are verified/installed, uses colorama for styled output and
+clears the screen after each user choice.
 """
 
 import sys
@@ -19,7 +27,8 @@ def ensure_dependencies_installed():
     required_packages = {
         "flask": "Flask==2.2.3",
         "requests": "requests==2.31.0",
-        "socketio": "python-socketio==5.6.0"
+        "socketio": "python-socketio==5.6.0",
+        "colorama": "colorama==0.4.6"
     }
 
     installed_any = False
@@ -29,31 +38,28 @@ def ensure_dependencies_installed():
             __import__(import_name)
         except ImportError:
             print(f"[CLIENT] Missing package '{import_name}'. Installing {pkg_version}...")
-            subprocess.run(
-                [sys.executable, "-m", "pip", "install", pkg_version],
-                check=False
-            )
+            subprocess.run([sys.executable, "-m", "pip", "install", pkg_version], check=False)
             installed_any = True
 
-    # If we installed anything, we can clear the console to have a fresh view
     if installed_any:
         clear_console()
+        print("[CLIENT] Dependencies installed. Console cleared. Continuing...")
 
 def clear_console():
-    """Clear the console screen."""
+    """Clear the console screen (Windows: cls, Linux/macOS: clear)."""
     os.system('cls' if os.name == 'nt' else 'clear')
-    print("[CLIENT] Dependencies installed. Console cleared. Continuing...")
 
-###############################################################################
 # Immediately ensure dependencies are installed
-###############################################################################
 ensure_dependencies_installed()
 
 ###############################################################################
-# Now that dependencies are installed, we can import them safely
+# Now import the packages we just installed
 ###############################################################################
 import requests
 import socketio
+from colorama import init, Fore, Style
+
+init(autoreset=True)
 
 ###############################################################################
 # Configuration
@@ -71,20 +77,20 @@ sio = socketio.Client()
 
 @sio.event
 def connect():
-    print("[CLIENT] Connected to server via Socket.IO.")
+    print(Fore.GREEN + "[CLIENT] Connected to server via Socket.IO.")
 
 @sio.event
 def connect_error(data):
-    print("[CLIENT] Socket.IO connection failed:", data)
+    print(Fore.RED + "[CLIENT] Socket.IO connection failed:", data)
 
 @sio.event
 def disconnect():
-    print("[CLIENT] Disconnected from the server.")
+    print(Fore.YELLOW + "[CLIENT] Disconnected from the server.")
 
 @sio.on("message")
 def on_message(data):
     """Handle broadcast messages from the server."""
-    print("[CLIENT] Broadcast from server:", data)
+    print(Fore.MAGENTA + "[CLIENT] Broadcast from server:" + Style.RESET_ALL, data)
 
 @sio.on("server_version_updated")
 def on_server_version_updated(data):
@@ -93,10 +99,10 @@ def on_server_version_updated(data):
     e.g., data = {'version': '1.0.2'}
     """
     new_version = data.get("version", "unknown")
-    print(f"[CLIENT] Server indicates a new version: {new_version}")
+    print(Fore.CYAN + f"[CLIENT] Server indicates a new version: {new_version}")
 
     if LOCAL_CLIENT_VERSION != new_version:
-        print("[CLIENT] Your local client version is out of date.")
+        print(Fore.RED + "[CLIENT] Your local client version is out of date.")
         choice = input("Update client code with 'git pull'? (y/n): ").strip().lower()
         if choice == "y":
             update_client_repo()
@@ -109,18 +115,18 @@ def update_client_repo():
     """
     Run 'git pull' to update local repository. Assumes credentials are set if private.
     """
-    print("[CLIENT] Pulling latest changes from the repository...")
+    print(Fore.YELLOW + "[CLIENT] Pulling latest changes from the repository...")
     try:
         os.chdir(REPO_PATH)
         result = subprocess.run(["git", "pull", "origin", "main"],
                                 text=True, capture_output=True)
         if result.returncode == 0:
-            print("[CLIENT] Successfully pulled updates! Restart if code changed.")
+            print(Fore.GREEN + "[CLIENT] Successfully pulled updates! Restart if code changed.")
         else:
-            print("[CLIENT] Git pull failed. Output:")
+            print(Fore.RED + "[CLIENT] Git pull failed. Output:")
             print(result.stderr)
     except Exception as e:
-        print("[CLIENT] Error running git pull:", e)
+        print(Fore.RED + "[CLIENT] Error running git pull:", e)
 
 ###############################################################################
 # HTTP Version Check
@@ -130,7 +136,7 @@ def check_version_http():
     """
     Call /version-check with the local client version to see if an update is needed.
     """
-    print(f"[CLIENT] Checking version via HTTP. Local: {LOCAL_CLIENT_VERSION}")
+    print(Fore.CYAN + f"[CLIENT] Checking version via HTTP. Local: {LOCAL_CLIENT_VERSION}")
     payload = {"client_version": LOCAL_CLIENT_VERSION}
     try:
         resp = requests.post(f"{SERVER_URL}/version-check", json=payload, timeout=5)
@@ -139,47 +145,42 @@ def check_version_http():
             server_ver = data.get("current_server_version", "unknown")
             needs_update = data.get("needs_update", False)
             if needs_update:
-                print(f"[CLIENT] Server version differs: {server_ver}. Local is {LOCAL_CLIENT_VERSION}.")
+                print(Fore.RED + f"[CLIENT] Server version differs: {server_ver}. Local is {LOCAL_CLIENT_VERSION}.")
                 choice = input("Pull latest code from the repo? (y/n): ").strip().lower()
                 if choice == 'y':
                     update_client_repo()
             else:
-                print("[CLIENT] No update needed. We match the server version.")
+                print(Fore.GREEN + "[CLIENT] No update needed. We match the server version.")
         else:
-            print("[CLIENT] /version-check returned status:", resp.status_code)
+            print(Fore.RED + "[CLIENT] /version-check returned status:", resp.status_code)
     except requests.exceptions.RequestException as e:
-        print("[CLIENT] Error calling /version-check:", e)
+        print(Fore.RED + "[CLIENT] Error calling /version-check:", e)
 
 ###############################################################################
-# Extra: Log and Reg (placeholders)
+# Placeholder Login/Registration
 ###############################################################################
 
 def user_login():
     """
-    Placeholder for user login. You can integrate with your server's
-    auth endpoints if you have them.
+    Placeholder for user login. Insert your actual logic here if needed.
     """
-    print("[CLIENT] Enter your username:")
+    print(Fore.YELLOW + "[CLIENT] Enter your username:")
     username = input("> ")
-    print("[CLIENT] Enter your password:")
+    print(Fore.YELLOW + "[CLIENT] Enter your password:")
     password = input("> ")
-    # Placeholder logic:
-    print(f"[CLIENT] Attempting login for username={username} ... (not yet implemented)")
+    print(Fore.BLUE + f"[CLIENT] Attempting login for username='{username}'... (not implemented)")
 
 def user_register():
     """
-    Placeholder for user registration. Connect to your server's registration
-    endpoint if you have one.
+    Placeholder for user registration. Insert your actual logic here if needed.
     """
-    print("[CLIENT] Register a new account. (Placeholder flow)")
-    print("[CLIENT] Enter your desired username:")
+    print(Fore.YELLOW + "[CLIENT] Enter your desired username:")
     username = input("> ")
-    print("[CLIENT] Enter your desired password:")
+    print(Fore.YELLOW + "[CLIENT] Enter your desired password:")
     password = input("> ")
-    print("[CLIENT] Enter your age:")
+    print(Fore.YELLOW + "[CLIENT] Enter your age:")
     age = input("> ")
-    # Placeholder logic:
-    print(f"[CLIENT] Attempting registration with username={username}, age={age} ... (not yet implemented)")
+    print(Fore.BLUE + f"[CLIENT] Attempting registration with username='{username}', age='{age}'... (not implemented)")
 
 ###############################################################################
 # Menu / Main Flow
@@ -187,16 +188,20 @@ def user_register():
 
 def main_menu():
     while True:
-        print(f"\n=== PyChat Client Menu (Local v{LOCAL_CLIENT_VERSION}) ===")
-        print("1. Connect to server (SocketIO)")
-        print("2. Check version via HTTP (/version-check)")
-        print("3. Pull latest code now (manual git pull)")
-        print("4. Disconnect from server")
-        print("5. Log")
-        print("6. Reg")
-        print("7. Exit")
+        # Clear console each time we show the menu for a fresh UI
+        clear_console()
 
-        choice = input("Select an option: ").strip()
+        print(Fore.GREEN + Style.BRIGHT + f"=== PyChat Client Menu (Local v{LOCAL_CLIENT_VERSION}) ===" + Style.RESET_ALL)
+        print(Fore.CYAN + "1." + Style.RESET_ALL + " Connect to server (SocketIO)")
+        print(Fore.CYAN + "2." + Style.RESET_ALL + " Check version via HTTP (/version-check)")
+        print(Fore.CYAN + "3." + Style.RESET_ALL + " Pull latest code now (manual git pull)")
+        print(Fore.CYAN + "4." + Style.RESET_ALL + " Disconnect from server")
+        print(Fore.CYAN + "5." + Style.RESET_ALL + " Log (Login placeholder)")
+        print(Fore.CYAN + "6." + Style.RESET_ALL + " Reg (Register placeholder)")
+        print(Fore.CYAN + "7." + Style.RESET_ALL + " Exit")
+
+        choice = input(Fore.MAGENTA + "Select an option: " + Style.RESET_ALL).strip()
+
         if choice == "1":
             connect_socketio()
         elif choice == "2":
@@ -210,39 +215,39 @@ def main_menu():
         elif choice == "6":
             user_register()
         elif choice == "7":
-            print("[CLIENT] Exiting client...")
+            print(Fore.YELLOW + "[CLIENT] Exiting client...")
             if sio.connected:
                 sio.disconnect()
             sys.exit(0)
         else:
-            print("Invalid choice. Please try again.")
+            print(Fore.RED + "Invalid choice. Press Enter to continue...")
+            input()
 
 def connect_socketio():
     """Connect to the server via Socket.IO if not already connected."""
     if not sio.connected:
         try:
-            print("[CLIENT] Connecting via SocketIO...")
+            print(Fore.MAGENTA + "[CLIENT] Connecting via SocketIO...")
             sio.connect(SERVER_URL, wait_timeout=5)
         except Exception as e:
-            print("[CLIENT] Socket.IO connection failed:", e)
+            print(Fore.RED + "[CLIENT] Socket.IO connection failed:", e)
     else:
-        print("[CLIENT] Already connected.")
+        print(Fore.RED + "[CLIENT] Already connected.")
 
 def disconnect_socketio():
     """Disconnect from the server if connected."""
     if sio.connected:
         sio.disconnect()
-        print("[CLIENT] Disconnected.")
+        print(Fore.YELLOW + "[CLIENT] Disconnected.")
     else:
-        print("[CLIENT] Not currently connected to server.")
+        print(Fore.RED + "[CLIENT] Not currently connected to server.")
 
 ###############################################################################
 # Main Entry
 ###############################################################################
 
 if __name__ == "__main__":
-    print(f"[CLIENT] Local client version is {LOCAL_CLIENT_VERSION}.")
-    print("[CLIENT] All dependencies verified or installed.")
-    print("[CLIENT] Starting the client menu...")
-
+    print(Fore.GREEN + f"[CLIENT] Local client version is {LOCAL_CLIENT_VERSION}.")
+    print(Fore.GREEN + "[CLIENT] All dependencies verified or installed.")
+    input(Fore.MAGENTA + "Press Enter to proceed to the main menu...")
     main_menu()
