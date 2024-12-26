@@ -56,7 +56,7 @@
 3. Configure the server details in `config.json`:
    ```json
    {
-       "server_host": "a3cb-12-198-115-229.ngrok-free.app",
+       "server_host": "[https://0bc4-12-198-115-229.ngrok-free.app]",
        "server_port": 5000
    }
    ```
