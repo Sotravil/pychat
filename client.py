@@ -26,7 +26,8 @@ def update_client():
 
 def main_menu():
     server_version = get_server_version()
-    print(f"Welcome to the Terminal Menu Dashboard /n (Server Version: {server_version})")
+    print(f"Welcome to the Terminal Menu Dashboard")
+    print(f"Server Version: {server_version}")
     print("1. Check Welcome Message")
     print("2. Check Server Status")
     print("3. Update Client")
