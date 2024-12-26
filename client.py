@@ -28,40 +28,40 @@ def global_chat(client):
     """Global chat functionality."""
     print("Entering Global Chat. Type your message or '/menu' to return to the main menu.")
     while True:
-        message = input("> ")
+        message = input("[Global] > ")
         if message == "/menu":
             break
         response = send_request(client, f"GLOBAL:{message}")
         if response:
-            print(f"Server: {response}")
+            print(response)
 
 def private_chat(client):
     """Private chat functionality."""
-    friend = input("Enter the username of the friend you want to chat with: ")
-    print(f"Starting private chat with {friend}. Type your message or '/end' to return to the main menu.")
+    recipient = input("Enter the username of the recipient: ")
+    print(f"Starting private chat with {recipient}. Type your message or '/end' to return to the main menu.")
     while True:
-        message = input("> ")
+        message = input("[Private] > ")
         if message == "/end":
             break
-        response = send_request(client, f"PRIVATE:{friend}:{message}")
+        response = send_request(client, f"PRIVATE:{recipient}:{message}")
         if response:
-            print(f"{friend}: {response}")
+            print(response)
 
 def group_chat(client):
     """Group chat functionality."""
-    group = input("Enter the group name you want to join or create: ")
+    group = input("Enter the group name: ")
     response = send_request(client, f"JOIN_GROUP:{group}")
     if response:
         print(response)
-    print(f"Entered group chat '{group}'. Type your message or '/leave' to leave the group.")
+    print(f"Joined group '{group}'. Type your message or '/leave' to leave the group.")
     while True:
-        message = input("> ")
+        message = input("[Group] > ")
         if message == "/leave":
             send_request(client, f"LEAVE_GROUP:{group}")
             break
         response = send_request(client, f"GROUP:{group}:{message}")
         if response:
-            print(f"Group {group}: {response}")
+            print(response)
 
 def notifications(client):
     """Check notifications."""
@@ -76,7 +76,7 @@ def manage_profile(client):
     """View and manage user profile."""
     print("Type '/view' to view your profile, '/edit' to update it, or '/menu' to return to the main menu.")
     while True:
-        command = input("> ")
+        command = input("[Profile] > ")
         if command == "/menu":
             break
         elif command == "/view":
@@ -84,7 +84,7 @@ def manage_profile(client):
             if response:
                 print("Your Profile:")
                 print(response)
-        elif command == "/edit":
+        elif command.startswith("/edit"):
             field = input("Enter the field you want to edit (e.g., 'username', 'bio'): ")
             value = input(f"Enter the new value for {field}: ")
             response = send_request(client, f"EDIT_PROFILE:{field}:{value}")
@@ -93,17 +93,28 @@ def manage_profile(client):
         else:
             print("Invalid command. Use '/view', '/edit', or '/menu'.")
 
+def help_center(client):
+    """Access the help center."""
+    while True:
+        page = input("Enter help page number (or '/menu' to return): ")
+        if page == "/menu":
+            break
+        response = send_request(client, f"HELP:{page}")
+        if response:
+            print(response)
+
 def main_menu(client):
     """Display the main menu and handle user actions."""
     while True:
         print("\nMain Menu:")
         print("1. Global Chat")
-        print("2. Private Chats")
-        print("3. Group Chats")
-        print("4. Check Notifications")
+        print("2. Private Chat")
+        print("3. Group Chat")
+        print("4. Notifications")
         print("5. Manage Profile")
-        print("6. Logout")
-        choice = input("Select an option (1-6): ")
+        print("6. Help Center")
+        print("7. Logout")
+        choice = input("Select an option (1-7): ")
 
         if choice == "1":
             global_chat(client)
@@ -116,10 +127,12 @@ def main_menu(client):
         elif choice == "5":
             manage_profile(client)
         elif choice == "6":
+            help_center(client)
+        elif choice == "7":
             print("Logging out...")
             break
         else:
-            print("Invalid choice. Please select an option between 1-6.")
+            print("Invalid choice. Please select an option between 1-7.")
 
 def main():
     print(f"Connecting to server at {SERVER_HOST}:{SERVER_PORT}...")
